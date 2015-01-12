@@ -810,6 +810,16 @@ const struct options_table_entry window_options_table[] = {
 	{ .name = NULL }
 };
 
+/* Window pane options */
+const struct options_table_entry window_pane_options_table[] = {
+	{ .name = "passthrough-keys",
+	  .type = OPTIONS_TABLE_FLAG,
+	  .default_num = 0
+	},
+
+	{ .name = NULL }
+};
+
 /* Populate an options tree from a table. */
 void
 options_table_populate_tree(
@@ -889,6 +899,7 @@ options_table_find(
 {
 	static const struct options_table_entry	*tables[] = {
 		server_options_table,
+		window_pane_options_table,
 		window_options_table,
 		session_options_table
 	};

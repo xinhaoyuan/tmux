@@ -36,8 +36,8 @@ enum cmd_retval cmd_show_options_all(struct cmd *, struct cmd_q *,
 
 const struct cmd_entry cmd_show_options_entry = {
 	"show-options", "show",
-	"gqst:vw", 0, 1,
-	"[-gqsvw] [-t target-session|target-window] [option]",
+	"gqst:vwp", 0, 1,
+	"[-gqsvwp] [-t target-session|target-window|target-pane] [option]",
 	0,
 	cmd_show_options_exec
 };
@@ -50,12 +50,21 @@ const struct cmd_entry cmd_show_window_options_entry = {
 	cmd_show_options_exec
 };
 
+const struct cmd_entry cmd_show_pane_options_entry = {
+	"show-pane-options", "showp",
+	"gvt:", 0, 1,
+	"[-gv] " CMD_TARGET_PANE_USAGE " [option]",
+	0,
+	cmd_show_options_exec
+};
+
 enum cmd_retval
 cmd_show_options_exec(struct cmd *self, struct cmd_q *cmdq)
 {
 	struct args				*args = self->args;
 	struct session				*s;
 	struct winlink				*wl;
+	struct window_pane			*wp;
 	const struct options_table_entry	*table;
 	struct options				*oo;
 	int					 quiet;
@@ -63,6 +72,17 @@ cmd_show_options_exec(struct cmd *self, struct cmd_q *cmdq)
 	if (args_has(self->args, 's')) {
 		oo = &global_options;
 		table = server_options_table;
+	} else if (args_has(self->args, 'p') ||
+	    self->entry == &cmd_show_pane_options_entry) {
+		table = window_pane_options_table;
+		if (args_has(self->args, 'g'))
+			oo = &global_wp_options;
+		else {
+			wl = cmd_find_pane(cmdq, args_get(args, 't'), NULL, &wp);
+			if (wp == NULL)
+				return (CMD_RETURN_ERROR);
+			oo = &wp->options;
+		}
 	} else if (args_has(self->args, 'w') ||
 	    self->entry == &cmd_show_window_options_entry) {
 		table = window_options_table;

@@ -198,6 +198,10 @@ format_find(struct format_tree *ft, const char *key)
 	static char		 s[16];
 
 	o = options_find(&global_options, key);
+	if (o == NULL && ft->w != NULL && ft->w->active != NULL)
+		o = options_find(&ft->w->active->options, key);
+	if (o == NULL)
+		o = options_find(&global_wp_options, key);
 	if (o == NULL && ft->w != NULL)
 		o = options_find(&ft->w->options, key);
 	if (o == NULL)

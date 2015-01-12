@@ -680,6 +680,8 @@ window_pane_create(struct window *w, u_int sx, u_int sy, u_int hlimit)
 	wp->id = next_window_pane_id++;
 	RB_INSERT(window_pane_tree, &all_window_panes, wp);
 
+	options_init(&wp->options, &global_wp_options);
+
 	wp->argc = 0;
 	wp->argv = NULL;
 	wp->shell = NULL;
@@ -728,6 +730,7 @@ window_pane_destroy(struct window_pane *wp)
 		close(wp->fd);
 	}
 
+	options_free(&wp->options);
 	input_free(wp);
 
 	screen_free(&wp->base);

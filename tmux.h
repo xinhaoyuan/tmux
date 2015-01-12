@@ -873,6 +873,7 @@ struct window_pane {
 	u_int		 xoff;
 	u_int		 yoff;
 
+	struct options options;
 	int		 flags;
 #define PANE_REDRAW 0x1
 #define PANE_DROP 0x2
@@ -1475,6 +1476,7 @@ struct options_table_entry {
 extern struct options global_options;
 extern struct options global_s_options;
 extern struct options global_w_options;
+extern struct options global_wp_options;
 extern struct environ global_environ;
 extern struct event_base *ev_base;
 extern char	*cfg_file;
@@ -1574,6 +1576,7 @@ struct grid_cell *options_get_style(struct options *, const char *);
 extern const struct options_table_entry server_options_table[];
 extern const struct options_table_entry session_options_table[];
 extern const struct options_table_entry window_options_table[];
+extern const struct options_table_entry window_pane_options_table[];
 void	options_table_populate_tree(const struct options_table_entry *,
 	    struct options *);
 const char *options_table_print_entry(const struct options_table_entry *,
@@ -1798,11 +1801,13 @@ extern const struct cmd_entry cmd_set_buffer_entry;
 extern const struct cmd_entry cmd_set_environment_entry;
 extern const struct cmd_entry cmd_set_option_entry;
 extern const struct cmd_entry cmd_set_window_option_entry;
+extern const struct cmd_entry cmd_set_pane_option_entry;
 extern const struct cmd_entry cmd_show_buffer_entry;
 extern const struct cmd_entry cmd_show_environment_entry;
 extern const struct cmd_entry cmd_show_messages_entry;
 extern const struct cmd_entry cmd_show_options_entry;
 extern const struct cmd_entry cmd_show_window_options_entry;
+extern const struct cmd_entry cmd_show_pane_options_entry;
 extern const struct cmd_entry cmd_source_file_entry;
 extern const struct cmd_entry cmd_split_window_entry;
 extern const struct cmd_entry cmd_start_server_entry;

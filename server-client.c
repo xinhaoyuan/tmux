@@ -433,6 +433,13 @@ server_client_handle_key(struct client *c, int key)
 
 	/* No previous prefix key. */
 	if (!(c->flags & CLIENT_PREFIX)) {
+
+		/* Check for passthrough option */
+		if (options_get_number(&wp->options, "passthrough-keys")) {
+			window_pane_key(wp, s, key);
+			return;
+		}
+
 		if (isprefix) {
 			c->flags |= CLIENT_PREFIX;
 			server_status_client(c);

@@ -66,8 +66,8 @@ struct options_entry *cmd_set_option_style(struct cmd *, struct cmd_q *,
 
 const struct cmd_entry cmd_set_option_entry = {
 	"set-option", "set",
-	"agoqst:uw", 1, 2,
-	"[-agosquw] [-t target-session|target-window] option [value]",
+	"agoqst:uwp", 1, 2,
+	"[-agosquwp] [-t target-session|target-window|target-pane] option [value]",
 	0,
 	cmd_set_option_exec
 };
@@ -76,6 +76,14 @@ const struct cmd_entry cmd_set_window_option_entry = {
 	"set-window-option", "setw",
 	"agoqt:u", 1, 2,
 	"[-agoqu] " CMD_TARGET_WINDOW_USAGE " option [value]",
+	0,
+	cmd_set_option_exec
+};
+
+const struct cmd_entry cmd_set_pane_option_entry = {
+	"set-pane-option", "setp",
+	"agoqt:u", 1, 2,
+	"[-agoqu] " CMD_TARGET_PANE_USAGE " option [value]",
 	0,
 	cmd_set_option_exec
 };
@@ -90,6 +98,7 @@ cmd_set_option_exec(struct cmd *self, struct cmd_q *cmdq)
 	struct client				*c;
 	struct options				*oo;
 	struct window				*w;
+	struct window_pane			*wp;
 	const char				*optstr, *valstr;
 	u_int					 i;
 
@@ -125,7 +134,21 @@ cmd_set_option_exec(struct cmd *self, struct cmd_q *cmdq)
 	/* Work out the tree from the table. */
 	if (table == server_options_table)
 		oo = &global_options;
-	else if (table == window_options_table) {
+	else if (table == window_pane_options_table) {
+		if (args_has(self->args, 'g'))
+			oo = &global_wp_options;
+		else {
+			wl = cmd_find_pane(cmdq, args_get(args, 't'), NULL, &wp);
+			if (wp == NULL) {
+				cmdq_error(cmdq,
+					"couldn't set '%s'%s", optstr,
+					(!args_has(args, 't') && !args_has(args,
+						'g')) ? " need target pane or -g" : "");
+				return (CMD_RETURN_ERROR);
+			}
+			oo = &wp->options;
+		}
+	} else if (table == window_options_table) {
 		if (args_has(self->args, 'g'))
 			oo = &global_w_options;
 		else {
@@ -206,10 +229,21 @@ cmd_set_option_user(struct cmd *self, struct cmd_q *cmdq, const char *optstr,
 	struct session	*s;
 	struct winlink	*wl;
 	struct options	*oo;
+	struct window_pane *wp;
 
 	if (args_has(args, 's'))
 		oo = &global_options;
-	else if (args_has(self->args, 'w') ||
+	else if (args_has(self->args, 'p') ||
+	    self->entry == &cmd_set_pane_option_entry) {
+		if (args_has(self->args, 'g'))
+			oo = &global_wp_options;
+		else {
+			wl = cmd_find_pane(cmdq, args_get(args, 't'), NULL, &wp);
+			if (wp == NULL)
+				return (CMD_RETURN_ERROR);
+			oo = &wp->options;
+		}
+	} else if (args_has(self->args, 'w') ||
 	    self->entry == &cmd_set_window_option_entry) {
 		if (args_has(self->args, 'g'))
 			oo = &global_w_options;

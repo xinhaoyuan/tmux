@@ -1,0 +1,6 @@
+20150111
+
+ - Add per-pane options support.
+ 
+ - "passthrough-keys" per-pane options to disable hotkey logic when
+   the pane is active
