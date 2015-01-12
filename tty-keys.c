@@ -610,7 +610,7 @@ complete_key:
 
 	/* Fire the key. */
 	if (key != KEYC_NONE)
-		server_client_handle_key(tty->client, key);
+		server_client_handle_key(tty->client, key, 1);
 
 	return (1);
 

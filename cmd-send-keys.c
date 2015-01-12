@@ -31,7 +31,7 @@ enum cmd_retval	 cmd_send_keys_exec(struct cmd *, struct cmd_q *);
 
 const struct cmd_entry cmd_send_keys_entry = {
 	"send-keys", "send",
-	"lRt:", 0, -1,
+	"lRUt:", 0, -1,
 	"[-lR] " CMD_TARGET_PANE_USAGE " key ...",
 	0,
 	cmd_send_keys_exec
@@ -39,7 +39,7 @@ const struct cmd_entry cmd_send_keys_entry = {
 
 const struct cmd_entry cmd_send_prefix_entry = {
 	"send-prefix", NULL,
-	"2t:", 0, 0,
+	"2Ut:", 0, 0,
 	"[-2] " CMD_TARGET_PANE_USAGE,
 	0,
 	cmd_send_keys_exec
@@ -53,17 +53,25 @@ cmd_send_keys_exec(struct cmd *self, struct cmd_q *cmdq)
 	struct session		*s;
 	struct input_ctx	*ictx;
 	const u_char		*str;
+	struct client		*uc;
 	int			 i, key;
 
 	if (cmd_find_pane(cmdq, args_get(args, 't'), &s, &wp) == NULL)
 		return (CMD_RETURN_ERROR);
+
+	if (args_has(args, 'U'))
+		uc = cmd_current_client(cmdq);
+	else uc = NULL;
 
 	if (self->entry == &cmd_send_prefix_entry) {
 		if (args_has(args, '2'))
 			key = options_get_number(&s->options, "prefix2");
 		else
 			key = options_get_number(&s->options, "prefix");
-		window_pane_key(wp, s, key);
+
+		if (uc) server_client_handle_key(uc, key, 0);
+		else window_pane_key(wp, s, key);
+
 		return (CMD_RETURN_NORMAL);
 	}
 
@@ -88,10 +96,13 @@ cmd_send_keys_exec(struct cmd *self, struct cmd_q *cmdq)
 
 		if (!args_has(args, 'l') &&
 		    (key = key_string_lookup_string(str)) != KEYC_NONE) {
-			    window_pane_key(wp, s, key);
+			    if (uc) server_client_handle_key(uc, key, 0);
+			    else window_pane_key(wp, s, key);
 		} else {
-			for (; *str != '\0'; str++)
-			    window_pane_key(wp, s, *str);
+			for (; *str != '\0'; str++) {
+			    if (uc) server_client_handle_key(uc, *str, 0);
+			    else window_pane_key(wp, s, *str);
+			}
 		}
 	}
 

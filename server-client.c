@@ -359,7 +359,7 @@ server_client_assume_paste(struct session *s)
 
 /* Handle data key input from client. */
 void
-server_client_handle_key(struct client *c, int key)
+server_client_handle_key(struct client *c, int key, int from_tty)
 {
 	struct session		*s;
 	struct window		*w;
